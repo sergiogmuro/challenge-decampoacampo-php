@@ -1,0 +1,30 @@
+{
+  "name": "decampoacampo/sergiomuro-code-challenge",
+  "type": "project",
+  "description": "DCAC Sergio Muro Code Challenge - CRUD module.",
+  "keywords": [
+    "decampoacampo",
+    "code-challenge",
+    "module"
+  ],
+  "license": "MIT",
+  "require": {
+    "php": "^8.4",
+    "ext-bcmath": "*",
+    "ext-pdo": "*"
+  },
+  "require-dev": {},
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Src\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
