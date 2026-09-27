@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080';
+const API_BASE = `${window.env.API_URL}`;
 
 const request = async (path, method = 'GET', data = null) => {
     const body = data ? JSON.stringify(data) : undefined;

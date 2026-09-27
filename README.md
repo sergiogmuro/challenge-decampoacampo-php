@@ -19,6 +19,65 @@ docker compose up -d
 docker compose exec app composer install
 ```
 -----
+## Como probar
+- Una vez iniciado el docker siguiendo los pasos anteriores
+- Ir a http://localhost para utilizar el frontend que llama al api
+- Por defecto el api esta configurada en el puerto :8080 y agregado en el env.js del frontend
+
+### Pruebas curl
+```shell
+# List
+curl http://localhost:8080/productos
+
+# New
+curl -X POST http://localhost:8080/productos \
+--data '{
+    "nombre": "Mi nuevo producto",
+    "descripcion": "Un producto nuevo",
+    "precio": 250.5
+}'
+
+# Product
+curl http://localhost:8080/productos/1
+
+# Update
+curl -X PUT http://localhost:8080/productos/1 \
+--data '{
+    "nombre": "Mi nuevo producto actualizado",
+    "descripcion": "Un producto nuevo nueva descripcion",
+    "precio": 350.5
+}'
+
+# Delete
+curl -X DELETE http://localhost:8080/productos/1
+```
+
+### Formatos de respuesta basados en OpenAPI
+Ok
+```json
+{
+    "data": {
+        "id": 5,
+        "nombre": "Mi nuevo producto",
+        "descripcion": "Un producto nuevo",
+        "precio": "250.50",
+        "created_at": "2026-09-27 17:56:03",
+        "updated_at": "2026-09-27 17:56:03"
+    }
+}
+```
+Error
+```json
+{
+    "error": {
+        "code": 500,
+        "message": "SQLSTATE[22001]: String data, right truncated: 1406 Data too long for column 'nombre' at row 1"
+    }
+}
+```
+
+
+-----
 ## Notas
 - Para manejar un standard todas las variables y codigo estan en ingles (aunque la base la dejo en español pero deberia estar en ingles)
 - Dockerizado
