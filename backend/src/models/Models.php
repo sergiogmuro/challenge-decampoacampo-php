@@ -20,10 +20,10 @@ abstract class Models implements ModelsInterface
         throw new \Exception('Not implemented method [getBaseQuery]');
     }
 
-    public function getAll(): array
+    public function getAll(int $limit = 25, int $offset = 0): array
     {
-        $query = $this->getBaseQuery();
-
+        $query = $this->getBaseQuery()
+            . " LIMIT {$limit} OFFSET {$offset}";
         return $this->pdo->getAll($query);
     }
 
@@ -55,7 +55,14 @@ abstract class Models implements ModelsInterface
         $columns = join(',', $columns);
         $query = "INSERT INTO `{$tableName}` ({$columns}) VALUES ({$bind})";
 
-        $id = $this->pdo->insert($query, $values);
+        $this->pdo->beginTransaction();
+        try {
+            $id = $this->pdo->insert($query, $values);
+        } catch (\PDOException $e) {
+            $this->pdo->rollback();
+            throw $e;
+        }
+        $this->pdo->commit();
 
         return $this->find($id);
     }

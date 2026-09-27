@@ -49,6 +49,21 @@ class Connection implements DBInterface
         return $this->connection;
     }
 
+    public function beginTransaction()
+    {
+        return $this->getConnection()->beginTransaction();
+    }
+
+    public function commit()
+    {
+        return $this->getConnection()->commit();
+    }
+
+    public function rollback()
+    {
+        return $this->getConnection()->rollBack();
+    }
+
     public function getAll(string $query, array $params = []): array
     {
         $stmt = $this->getConnection()->prepare($query);

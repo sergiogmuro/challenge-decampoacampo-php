@@ -1,15 +1,104 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRUD Products</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CRUD Products</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+          rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-<div id="root"></div>
-<script type="module" src="/src/main.tsx"></script>
+<div class="wrapper">
+    <div class="flex">
+        <div class="title center"><h1>CRUD</h1></div>
+        <div class="center right w-100">
+            <button id="new" class="btn btn-new">Nuevo producto</button>
+        </div>
+    </div>
+    <div id="table" class="table">
+        <div class="thead">
+            <div>ID</div>
+            <div>Nombre</div>
+            <div>Descripcion</div>
+            <div>Precio ARS</div>
+            <div>Precio USD</div>
+            <div>Acciones</div>
+        </div>
+        <div id="tbody" class="tbody">
+            <div class="no-products">
+                <h4>NO SE ENCONTRARON PRODUCTOS PARA MOSTRAR</h4>
+            </div>
+            <template id="productrow">
+                <div id="product" class="product">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div class="flex">
+                        <button id="edit" class="btn btn-edit">Editar</button>
+                        <button id="delete" class="btn btn-delete">Eliminar</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div id="editPopup" class="popup-overlay hidden">
+        <div class="popup-content">
+            <h2>Editar Producto</h2>
+            <form id="editForm">
+                <input type="hidden" id="editProductId">
+
+                <div class="form-group">
+                    <label for="editName">Nombre</label>
+                    <input type="text" id="editName" required maxlength="255">
+                </div>
+
+                <div class="form-group">
+                    <label for="editDescription">Descripción</label>
+                    <textarea id="editDescription" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPrice">Precio ARS</label>
+                    <input type="number" id="editPrice" step="0.01" required>
+                </div>
+
+                <div class="popup-actions">
+                    <button type="button" id="cancelEdit" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirmationDeletePopup" class="popup-overlay hidden">
+        <div class="popup-content">
+            <h2>¿Eliminar producto?</h2>
+            <p>Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este producto?</p>
+            <input type="hidden" id="deleteProductId">
+
+            <div class="popup-actions">
+                <button type="button" id="cancelDelete" class="btn-secondary">Cancelar</button>
+                <button type="button" id="confirmDelete" class="btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationPopup" class="popup-overlay hidden">
+        <div id="notificationPopupContent" class="notification-content">
+            <div class="notification-header">
+                <strong id="notificationTitle"></strong>
+            </div>
+            <div class="notification-text">
+                <p id="notificationMessage"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="functions.js" type="application/javascript"></script>
 </body>
 </html>

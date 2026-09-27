@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Enums\Currencies;
+use App\Helpers\MoneyFormat;
 use App\Models\Product;
 use App\Responses\ApiResponse;
 use App\Services\PriceCalculator\PriceCalculatorService;
@@ -29,68 +30,104 @@ class ProductController extends Controller
 
     public function list(): void
     {
-        $products = $this->productModel->getAll();
-        foreach ($products as $i => $product) {
-            $products[$i] = $this->processPriceUSD($product);
-        }
+        try {
+            $products = $this->productModel->getAll();
 
-        $this->view->json(ApiResponse::make($products));
+            foreach ($products as $i => $product) {
+                $products[$i] = $this->processPriceUSD($product);
+            }
+
+            $this->view->json(ApiResponse::make($products));
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
     }
 
     public function show(int $id): void
     {
-        $product = $this->productModel->find($id);
-        $product = $this->processPriceUSD($product);
+        try {
+            $product = $this->productModel->find($id);
+            $product = $this->processPriceUSD($product);
 
-        $this->view->json(ApiResponse::make($product));
+            $this->view->json(ApiResponse::make($product));
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
     }
 
     public function store(array $body): void
     {
-        $name = $body['nombre'];
-        $description = $body['descripcion'];
-        $price = $body['precio'];
+        try {
+            $name = $body['nombre'];
+            $description = $body['descripcion'];
+            $price = $body['precio'];
 
-        $entries = [
-            'nombre' => $name,
-            'descripcion' => $description,
-            'precio' => $price
-        ];
-        $productModel = $this->productModel;
-        $product = $productModel->insert($entries);
+            $entries = [
+                'nombre' => $name,
+                'descripcion' => $description,
+                'precio' => $price
+            ];
+            $productModel = $this->productModel;
+            $product = $productModel->insert($entries);
 
-        $this->view->json(ApiResponse::make($product), 201);
+            $this->view->json(ApiResponse::make($product), 201);
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
     }
 
     public function update(int $id, array $body): void
     {
-        $name = $body['nombre'];
-        $description = $body['descripcion'];
-        $price = $body['precio'];
+        try {
+            $name = $body['nombre'];
+            $description = $body['descripcion'];
+            $price = $body['precio'];
 
-        $entries = [
-            'nombre' => $name,
-            'descripcion' => $description,
-            'precio' => $price
-        ];
-        $productModel = $this->productModel;
-        $product = $productModel->update($id, $entries);
+            $entries = [
+                'nombre' => $name,
+                'descripcion' => $description,
+                'precio' => $price
+            ];
+            $productModel = $this->productModel;
+            $product = $productModel->update($id, $entries);
+            $this->view->json(ApiResponse::make($product));
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
 
-        $this->view->json(ApiResponse::make($product));
     }
 
     public function delete(int $id): void
     {
-        $productModel = $this->productModel;
-        $product = $productModel->delete($id);
+        try {
+            $productModel = $this->productModel;
+            $product = $productModel->delete($id);
 
-        $this->view->json(ApiResponse::make($product), 204);
+            $this->view->json(ApiResponse::make($product), 204);
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
     }
 
-    private function processPriceUSD($product)
+    private function processPriceUSD(array $product, int $decimals = 2): array
     {
         $usdPrice = $this->priceCalculatorService->calculate(Currencies::USD, $product['precio']);
-        $product['precio_usd'] = $usdPrice;
+
+        if ($usdPrice < 0.009) {
+            $decimals = 4;
+        }
+
+        $product['precio_usd'] = MoneyFormat::format($usdPrice, $decimals);
 
         return $product;
     }
