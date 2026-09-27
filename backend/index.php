@@ -21,9 +21,9 @@ try {
     $router->get('/', \App\Controllers\ProductController::class, 'index');
     $router->get('/productos', \App\Controllers\ProductController::class, 'list');
     $router->get('/productos/{id}', \App\Controllers\ProductController::class, 'show');
-    $router->post('/productos/{id}', \App\Controllers\ProductController::class, 'store');
+    $router->post('/productos', \App\Controllers\ProductController::class, 'store');
     $router->put('/productos/{id}', \App\Controllers\ProductController::class, 'update');
-    $router->delete('/productos/{id}', \App\Controllers\ProductController::class, 'remove');
+    $router->delete('/productos/{id}', \App\Controllers\ProductController::class, 'delete');
 
     // Execution of resolver for process routes
     $router->resolve($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);

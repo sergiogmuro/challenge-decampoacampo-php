@@ -17,7 +17,6 @@ class Connection implements DBInterface
         }
 
         try {
-
             $host = env('MYSQL_HOST');
             $dbname = env('MYSQL_DATABASE');
             $username = env('MYSQL_USER');
@@ -37,7 +36,6 @@ class Connection implements DBInterface
         }
     }
 
-
     public static function getInstance()
     {
         if (self::$instance === null) {
@@ -46,10 +44,44 @@ class Connection implements DBInterface
         return self::$instance;
     }
 
-
-    public function getConnection()
+    private function getConnection()
     {
         return $this->connection;
+    }
+
+    public function getAll(string $query, array $params = []): array
+    {
+        $stmt = $this->getConnection()->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    public function first(string $query, array $params = []): array
+    {
+        $stmt = $this->getConnection()->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetch() ?: [];
+    }
+
+    public function insert(string $query, array $params = []): int
+    {
+        $this->query($query, $params);
+
+        return $this->lastId();
+    }
+
+    public function query(string $query, array $params = []): false|\PDOStatement
+    {
+        $stmt = $this->getConnection()->prepare($query);
+        $stmt->execute($params);
+        return $stmt;
+    }
+
+    public function lastId(): int
+    {
+        return (int)$this->getConnection()->lastInsertId();
     }
 
     private function __clone()
@@ -58,6 +90,6 @@ class Connection implements DBInterface
 
     public function __wakeup()
     {
-        throw new \Exception("No se puede deserializar una instancia de Database.");
+        throw new \Exception("Unserialized error.");
     }
 }

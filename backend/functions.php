@@ -1,10 +1,15 @@
 <?php
 
-function dd(...$args)
+function d(...$args)
 {
     echo "<pre>";
-    var_dump($args);
+    var_dump(...$args);
     echo "</pre>";
+}
+
+function dd(...$args)
+{
+    d(...$args);
     die;
 }
 
@@ -24,4 +29,26 @@ function env($key, $default = null)
     }
 
     return $default;
+}
+
+function traceFormatter($trace): array
+{
+    $traces = [];
+    foreach ($trace as $files) {
+        $traces[] = join(' ', [
+            'in',
+            $files['file'],
+            'on',
+            join('', [
+                $files['class'],
+                $files['type'],
+                $files['function'],
+                '(',
+                $files['line'],
+                ')']),
+
+        ]);
+    }
+
+    return $traces;
 }

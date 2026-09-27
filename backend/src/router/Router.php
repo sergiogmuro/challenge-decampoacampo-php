@@ -7,7 +7,10 @@ use Src\Container;
 class Router
 {
     public static array $routes = [];
-    public function __construct(private Container $container) {}
+
+    public function __construct(private Container $container)
+    {
+    }
 
     public static function get(string $route, string $controller, string $action): void
     {
@@ -34,22 +37,59 @@ class Router
         $path = parse_url($requestUri, PHP_URL_PATH);
         $method = strtolower($requestMethod);
 
-        if (isset(self::$routes[$method][$path])) {
-            [$controller, $action] = self::$routes[$method][$path];
+        $entityBody = json_decode(file_get_contents('php://input'), true);
+        $pathWithData = $this->matchDataOnPath(self::$routes[$method], $path);
+        $pathWithData['variables']['body'] = $entityBody ?? [];
+        if ($pathWithData) {
+            [$controller, $action] = $pathWithData;
 
-            $this->callAction($controller, $action);
+            $this->callAction($controller, $action, array_filter($pathWithData['variables'] ?? []));
             return;
         }
 
-        throw new \Exception('Page not found',404);
+        throw new \Exception('Page not found', 404);
     }
 
-    private function callAction($controller, $action): void
+    private function callAction($controller, $action, $parameters): void
     {
         $controller = $this->container->get($controller);
 
-        $controller->$action();
+        $controller->$action(...$parameters);
 
         return;
+    }
+
+    private function matchDataOnPath($routes, $path)
+    {
+        foreach ($routes as $route => $controller) {
+            $routesParts = array_values(array_filter(explode('/', $route)));
+            $pathParts = array_values(array_filter(explode('/', $path)));
+
+            if (count($routesParts) !== count($pathParts)) {
+                continue;
+            }
+
+            $routeMatches = true;
+            $variables = [];
+
+            foreach ($routesParts as $i => $part) {
+                $partReplaced = preg_replace('/(\{\w+\})/', $pathParts[$i], $part, 1);
+
+                if ($part !== $partReplaced) {
+                    $varName = str_replace('{', '', str_replace('}', '', $part));
+                    $variables[$varName] = $pathParts[$i];
+                } else {
+                    if ($part !== $pathParts[$i]) {
+                        $routeMatches = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($routeMatches) {
+                $controller['variables'] = $variables;
+                return $controller;
+            }
+        }
     }
 }

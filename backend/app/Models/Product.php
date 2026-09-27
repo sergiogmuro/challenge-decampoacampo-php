@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
-use Src\database\Connection;
-use Src\Models;
+use Src\models\Models;
 
 class Product extends Models
 {
-    public function __construct(Connection $pdo) {
-        parent::__construct($pdo);
-    }
+    protected string $tableName = 'productos';
 
-    public function getAll() {
-         return $this->pdo->getConnection()->query("SELECT * FROM productos")->fetchAll();
+    static function getBaseQuery(): string
+    {
+        return "SELECT
+            id,
+            nombre,
+            descripcion,
+            precio,
+            created_at,
+            updated_at
+        FROM productos
+        WHERE deleted_at IS NULL";
     }
 }
