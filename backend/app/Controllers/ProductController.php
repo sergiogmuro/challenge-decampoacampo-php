@@ -7,6 +7,7 @@ use App\Helpers\MoneyFormat;
 use App\Models\Product;
 use App\Responses\ApiResponse;
 use App\Services\PriceCalculator\PriceCalculatorService;
+use Exception;
 use Src\Controller;
 
 class ProductController extends Controller
@@ -49,6 +50,10 @@ class ProductController extends Controller
     {
         try {
             $product = $this->productModel->find($id);
+            if (!$product) {
+                throw new Exception("Product not found", 404);
+            }
+
             $product = $this->processPriceUSD($product);
 
             $this->view->json(ApiResponse::make($product));
@@ -62,17 +67,9 @@ class ProductController extends Controller
     public function store(array $body): void
     {
         try {
-            $name = $body['nombre'];
-            $description = $body['descripcion'];
-            $price = $body['precio'];
-
-            $entries = [
-                'nombre' => $name,
-                'descripcion' => $description,
-                'precio' => $price
-            ];
-            $productModel = $this->productModel;
-            $product = $productModel->insert($entries);
+            $product = $this->updateOrCreate(
+                body: $body
+            );
 
             $this->view->json(ApiResponse::make($product), 201);
         } catch (\PDOException $e) {
@@ -85,17 +82,10 @@ class ProductController extends Controller
     public function update(int $id, array $body): void
     {
         try {
-            $name = $body['nombre'];
-            $description = $body['descripcion'];
-            $price = $body['precio'];
-
-            $entries = [
-                'nombre' => $name,
-                'descripcion' => $description,
-                'precio' => $price
-            ];
-            $productModel = $this->productModel;
-            $product = $productModel->update($id, $entries);
+            $product = $this->updateOrCreate(
+                id: $id,
+                body: $body
+            );
             $this->view->json(ApiResponse::make($product));
         } catch (\PDOException $e) {
             $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
@@ -109,6 +99,11 @@ class ProductController extends Controller
     {
         try {
             $productModel = $this->productModel;
+            $product = $productModel->find($id);
+            if (!$product) {
+                throw new Exception("Product not found", 404);
+            }
+
             $product = $productModel->delete($id);
 
             $this->view->json(ApiResponse::make($product), 204);
@@ -117,6 +112,43 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
         }
+    }
+
+    private function updateOrCreate(?int $id = null, array $body = [])
+    {
+        try {
+            $name = $body['nombre'] ?? null;
+            $description = $body['descripcion'] ?? null;
+            $price = $body['precio'] ?? null;
+
+            if ($name === null || $description === null || $price === null) {
+                throw new Exception('Keys `nombre`, `descripcion` and `precio` are required', 400);
+            }
+
+            $entries = [
+                'nombre' => $name,
+                'descripcion' => $description,
+                'precio' => $price
+            ];
+            if ($id !== null) {
+                $productModel = $this->productModel;
+                $product = $productModel->find($id);
+                if (!$product) {
+                    throw new Exception("Product not found", 404);
+                }
+
+                $product = $productModel->update($id, $entries);
+            } else {
+                $product = $this->productModel->insert($entries);
+            }
+
+            return $product;
+        } catch (\PDOException $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), 500), 500);
+        } catch (\Exception $e) {
+            $this->view->json(ApiResponse::make($e->getMessage(), $e->getCode()), $e->getCode());
+        }
+
     }
 
     private function processPriceUSD(array $product, int $decimals = 2): array
